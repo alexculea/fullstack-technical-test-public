@@ -3,11 +3,26 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { Button } from "~/components/ui/button"
+import { Input } from "~/components/ui/input"
+import { Form } from "~/components/ui/form"
+
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+
 import { api } from "~/trpc/react";
+import { FormControl, FormField, FormItem, FormMessage } from "~/components/ui/form";
+
+const formSchema = z.object({
+  name: z.string().min(3, {
+    message: "Post name must be at least 3 characters.",
+  }),
+});
 
 export function CreatePost() {
   const router = useRouter();
-  const [name, setName] = useState("");
+  const [name, setName] = useState<string>("");
 
   const createPost = api.post.create.useMutation({
     onSuccess: () => {
@@ -16,28 +31,37 @@ export function CreatePost() {
     },
   });
 
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+  })
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        createPost.mutate({ name });
-      }}
-      className="flex flex-col gap-2"
-    >
-      <input
-        type="text"
-        placeholder="Title"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="w-full rounded-full px-4 py-2 text-black"
-      />
-      <button
-        type="submit"
-        className="rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/20"
-        disabled={createPost.isPending}
+    <Form {...form}>
+      <form
+        className="space-y-8"
+        onSubmit={
+          form.handleSubmit(
+            (values: z.infer<typeof formSchema>) => createPost.mutate({ name: values.name })
+          )
+        }
       >
-        {createPost.isPending ? "Submitting..." : "Submit"}
-      </button>
-    </form>
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input {...field} placeholder="Title" value={name} onChange={
+                  (e: React.FormEvent<HTMLInputElement>) => setName(
+                    (e.target as HTMLInputElement).value ?? '')
+                } />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit">{createPost.isPending ? "Submitting..." : "Submit"}</Button>
+      </form>
+    </Form>
   );
 }

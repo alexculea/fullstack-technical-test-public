@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { CreatePost } from "~/app/_components/create-post";
+import { PostsList } from "~/app/_components/posts-list";
 import { api } from "~/trpc/server";
 
 export default async function Home() {
@@ -60,6 +61,7 @@ async function CrudShowcase() {
       )}
 
       <CreatePost />
+      <PostsList />
     </div>
   );
 }
