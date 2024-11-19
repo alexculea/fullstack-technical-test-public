@@ -23,17 +23,20 @@ const formSchema = z.object({
 export function CreatePost() {
   const router = useRouter();
   const [name, setName] = useState<string>("");
-
+  const utils = api.useUtils();
   const createPost = api.post.create.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       router.refresh();
       setName("");
+
+      await utils.post.getLatestPosts.invalidate();
     },
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-  })
+  });
+
 
   return (
     <Form {...form}>
@@ -41,7 +44,9 @@ export function CreatePost() {
         className="space-y-8"
         onSubmit={
           form.handleSubmit(
-            (values: z.infer<typeof formSchema>) => createPost.mutate({ name: values.name })
+            (values: z.infer<typeof formSchema>) => {
+              createPost.mutate({ name: values.name })
+            }
           )
         }
       >
@@ -51,7 +56,7 @@ export function CreatePost() {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input {...field} placeholder="Title" value={name} onChange={
+                <Input {...field } {...form.register('name') } placeholder="Title" value={name} onChange={
                   (e: React.FormEvent<HTMLInputElement>) => setName(
                     (e.target as HTMLInputElement).value ?? '')
                 } />

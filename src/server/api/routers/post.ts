@@ -29,10 +29,12 @@ export const postRouter = createTRPCRouter({
       orderBy: { createdAt: "desc" },
     });
   }),
-  getNewestTenPosts: publicProcedure.query(({ ctx }) => {
-    return ctx.db.post.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 10,
-    })
-  }),
+  getLatestPosts: publicProcedure
+    .input(z.object({ take: z.number().default(10).optional() }))
+    .query(({ ctx, input }) => {
+      return ctx.db.post.findMany({
+        orderBy: { createdAt: "desc" },
+        take: input.take,
+      })
+    }),
 });

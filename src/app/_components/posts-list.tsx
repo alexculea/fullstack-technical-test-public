@@ -18,7 +18,7 @@ import { api } from "~/trpc/react";
 export function PostsList() {
   const router = useRouter();
 
-  const latestPosts = api.post.getNewestTenPosts.useQuery();
+  const latestPosts = api.post.getLatestPosts.useQuery({});
   const noPosts = !latestPosts.isLoading && !latestPosts.isError && latestPosts.data?.length === 0;
 
   const component = latestPosts.isLoading ? (
